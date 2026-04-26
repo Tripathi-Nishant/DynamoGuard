@@ -9,7 +9,7 @@
 
 ---
 
-## 📌 Executive Summary
+## Executive Summary
 
 **DynamoDB Hotspot Sentinel** is a production-grade Proof of Concept that demonstrates **AI/ML-powered detection and automatic remediation of DynamoDB partition hotspots**. The system leverages AWS's serverless ecosystem—DynamoDB, Lambda, CloudWatch, and EventBridge—integrated with a **premium real-time dashboard** featuring WebSocket-powered live metrics, risk scoring, and predictive analytics.
 
@@ -270,30 +270,6 @@ python lambda_function.py
 
 ---
 
-## Project Structure
-
-```
-dynamodb-hotspot/
-│
-├── README.md                      ← You are here
-├── requirements.txt               ← Python dependencies
-│
-├──  Documentation
-│   ├── AWS_SETUP_GUIDE.md         ← AWS configuration steps
-│   ├── README_EXAM_GUIDE.md       ← Exam demo script
-│   ├── QUICK_START.md             ← Cheat sheet
-│   ├── DASHBOARD_SETUP.md         ← Dashboard guide
-│   └── PROJECT_FILES_EXPLAINED.md ← File-by-file breakdown
-│
-├──  Core Python Modules
-│   ├── setup_aws.py               ← Creates DynamoDB table
-│   ├── traffic_generator.py       ← Simulates hotspot traffic
-│   ├── lambda_function.py         ← ML decision engine
-│   └── dashboard_backend.py       ← FastAPI WebSocket server
-│
-└──  Frontend
-    └── dashboard.html             ← Premium dashboard UI
-```
 
 ### File Descriptions
 
@@ -423,7 +399,7 @@ By exploring this project, you'll gain expertise in:
 ---
 
 
-## 🚀 Advanced Topics
+## Advanced Topics
 
 ### Scaling to Production
 
@@ -469,7 +445,7 @@ BillingModeSummary={
 }
 ```
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### AWS Documentation
 - [DynamoDB Best Practices](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/)
