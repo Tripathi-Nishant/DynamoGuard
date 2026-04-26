@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DynamoDB Hotspot Sentinel - AWS Exam PoC</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 12px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge.healthy {
+            background: rgba(52, 211, 153, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+        }
+
+        .status-badge.warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+
+        .status-badge.critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse.healthy { background: #34d399; }
+        .pulse.warning { background: #fbbf24; }
+        .pulse.critical { background: #ef4444; }
+
+        /* GRID LAYOUT */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(96, 165, 250, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        /* RISK SCORE GAUGE */
+        .risk-gauge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .gauge-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 700;
+            position: relative;
+            background: conic-gradient(
+                from 0deg,
+                #34d399 0%,
+                #60a5fa 30%,
+                #fbbf24 60%,
+                #ef4444 100%
+            );
+            padding: 3px;
+        }
+
+        .gauge-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 700;
+        }
+
+        .risk-value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .risk-label {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* PREDICTION BOX */
+        .prediction-box {
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+        }
+
+        .prediction-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .prediction-item-label {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .prediction-item-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* STATUS INDICATORS */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .status-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .status-item-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 6px 0;
+        }
+
+        .status-item-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        /* CHARTS */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px;
+        }
+
+        .chart-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .chart-card {
+            padding: 8px;
+            min-height: 200px;
+        }
+
+        .chart-card .chart-title {
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        #capacityChart, #predictionChart {
+            height: 160px !important;
+        }
+
+        /* HOT KEYS TABLE */
+        .hot-keys-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .hot-keys-table thead tr {
+            border-bottom: 2px solid rgba(96, 165, 250, 0.2);
+        }
+
+        .hot-keys-table th {
+            padding: 8px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hot-keys-table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .hot-keys-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .key-badge {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .traffic-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .traffic-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa, #34d399);
+            transition: width 0.3s ease;
+        }
+
+        /* FULL WIDTH */
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* ANIMATIONS */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #60a5fa;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1>🛡️ DynamoDB Hotspot Sentinel</h1>
+                <p style="font-size: 12px; color: #94a3b8; margin-top: 5px;">AI-Powered Predictive Detection & Auto-Remediation</p>
+            </div>
+            <div class="header-meta">
+                <div id="statusBadge" class="status-badge healthy">
+                    <div class="pulse healthy"></div>
+                    <span>SYSTEM HEALTHY</span>
+                </div>
+                <div style="font-size: 12px; color: #94a3b8;">
+                    Last Update: <span id="lastUpdate">--:--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="dashboard-grid">
+            <!-- RISK SCORE CARD -->
+            <div class="card">
+                <div class="card-title">ML Risk Score</div>
+                <div class="risk-gauge">
+                    <div class="gauge-circle">
+                        <div class="gauge-inner">
+                            <div id="riskScore">0.0</div>
+                        </div>
+                    </div>
+                    <div id="riskLevel" style="font-size: 14px; font-weight: 600; color: #34d399;">SAFE</div>
+                </div>
+            </div>
+
+            <!-- PREDICTIONS CARD -->
+            <div class="card">
+                <div class="card-title">AI Predictions</div>
+                <div class="prediction-box">
+                    <div class="prediction-item">
+                        <div class="prediction-item-label">Probability</div>
+                        <div class="prediction-item-value" id="probability">0%</div>
+                    </div>
+                    <div class="prediction-item">
+                        <div class="prediction-item-label">Trend</div>
+                        <div class="prediction-item-value" id="trend" style="color: #34d399;">Stable</div>
+                    </div>
+                    <div class="prediction-item">
+                        <div class="prediction-item-label">Current Load</div>
+                        <div class="prediction-item-value" id="currentLoad">0 WCU</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- METRICS CARD -->
+            <div class="card">
+                <div class="card-title">System Metrics</div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-item-label">Write Capacity</div>
+                        <div class="status-item-value" id="writeCapacity">0</div>
+                        <div style="font-size: 10px; color: #94a3b8;">Units/min</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-item-label">Hot Keys</div>
+                        <div class="status-item-value" id="hotKeysCount">0</div>
+                        <div style="font-size: 10px; color: #94a3b8;">Detected</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAPACITY TREND CHART -->
+            <div class="card full-width chart-card">
+                <div class="chart-title">📊 Write Capacity Trend (Last 24 Minutes)</div>
+                <div id="capacityChart"></div>
+            </div>
+
+            <!-- HOT KEYS TABLE -->
+            <div class="card full-width">
+                <div class="card-title">🔥 Detected Hot Keys</div>
+                <table class="hot-keys-table">
+                    <thead>
+                        <tr>
+                            <th>Partition Key</th>
+                            <th>Traffic Volume</th>
+                            <th>Impact Score</th>
+                            <th>Resharding Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hotKeysTable">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #94a3b8;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize ApexCharts
+        var capacityChart = new ApexCharts(document.getElementById('capacityChart'), {
+            chart: {
+                type: 'line',
+                height: 160,
+                toolbar: { show: false },
+                background: 'transparent',
+                animations: { enabled: true, speed: 800, animateGradually: { enabled: true, delay: 150 } }
+            },
+            series: [{
+                name: 'Consumed WCU',
+                data: [],
+                strokeWidth: 4,
+                color: '#00ff88'
+            }],
+            stroke: { curve: 'smooth', width: 4, lineCap: 'round' },
+            grid: { borderColor: 'rgba(255, 255, 255, 0.15)', padding: { top: 10, right: 10, bottom: 10, left: 40 } },
+            xaxis: { 
+                categories: [],
+                labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
+                axisBorder: { show: false }
+            },
+            yaxis: { 
+                labels: { style: { colors: '#94a3b8', fontSize: '11px' } },
+                axisBorder: { show: false }
+            },
+            colors: ['#00ff88'],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.1,
+                    stops: [20, 100, 100, 100],
+                    colorStops: [
+                        {
+                            offset: 0,
+                            color: '#00ff88',
+                            opacity: 0.8
+                        },
+                        {
+                            offset: 100,
+                            color: '#00ff88',
+                            opacity: 0.1
+                        }
+                    ]
+                }
+            },
+            tooltip: {
+                theme: 'dark',
+                style: { fontSize: '12px' },
+                y: {
+                    formatter: function(val) {
+                        return Math.round(val) + ' WCU'
+                    }
+                }
+            },
+            theme: { mode: 'dark' }
+        });
+
+        capacityChart.render();
+
+        // WebSocket Connection
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/live-metrics`);
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            updateDashboard(data);
+        };
+
+        function updateDashboard(data) {
+            // Update timestamp
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+
+            // Update Risk Score
+            const riskScore = data.ml_prediction.probability;
+            document.getElementById('riskScore').textContent = (riskScore * 100).toFixed(1);
+
+            // Determine color based on risk
+            let riskColor = '#34d399'; // green (safe)
+            let riskLabel = 'SAFE';
+            let statusColor = 'healthy';
+
+            if (riskScore > 0.85) {
+                riskColor = '#ef4444'; // red (critical)
+                riskLabel = 'CRITICAL';
+                statusColor = 'critical';
+            } else if (riskScore > 0.60) {
+                riskColor = '#fbbf24'; // yellow (warning)
+                riskLabel = 'HIGH';
+                statusColor = 'warning';
+            }
+
+            document.getElementById('riskLevel').textContent = riskLabel;
+            document.getElementById('riskLevel').style.color = riskColor;
+
+            // Update status badge
+            const badge = document.getElementById('statusBadge');
+            badge.className = `status-badge ${statusColor}`;
+            badge.innerHTML = `<div class="pulse ${statusColor}"></div><span>${riskLabel === 'SAFE' ? 'SYSTEM HEALTHY' : `RISK: ${riskLabel}`}</span>`;
+
+            // Update predictions
+            document.getElementById('probability').textContent = (riskScore * 100).toFixed(1) + '%';
+            document.getElementById('trend').textContent = data.ml_prediction.trend.toUpperCase();
+            document.getElementById('currentLoad').textContent = data.current_load + ' WCU';
+
+            // Update metrics
+            document.getElementById('writeCapacity').textContent = data.current_load;
+            document.getElementById('hotKeysCount').textContent = data.hot_keys.length;
+
+            // Update capacity chart
+            capacityChart.updateSeries([{
+                data: data.write_capacity
+            }]);
+            capacityChart.updateOptions({
+                xaxis: { categories: data.timestamps.map(ts => new Date(ts).toLocaleTimeString()) }
+            });
+
+            // Update hot keys table
+            const tableBody = document.getElementById('hotKeysTable');
+            if (data.hot_keys.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8;">No hot keys detected</td></tr>';
+            } else {
+                tableBody.innerHTML = data.hot_keys.map(key => `
+                    <tr>
+                        <td><span class="key-badge">${key.key}</span></td>
+                        <td>
+                            <div>${key.traffic_volume} req/min</div>
+                            <div class="traffic-bar">
+                                <div class="traffic-fill" style="width: ${Math.min((key.traffic_volume / 500) * 100, 100)}%"></div>
+                            </div>
+                        </td>
+                        <td><strong>${(key.impact_score * 100).toFixed(1)}%</strong></td>
+                        <td><span style="color: ${key.impact_score > 0.8 ? '#ef4444' : '#34d399'}; font-weight: 600;">
+                            ${key.impact_score > 0.8 ? '⚡ Resharding' : '✓ Monitored'}
+                        </span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        ws.onerror = function(event) {
+            console.error('WebSocket error:', event);
+        };
+
+        ws.onclose = function(event) {
+            console.log('WebSocket closed. Reconnecting...');
+            setTimeout(() => location.reload(), 3000);
+        };
+    </script>
+</body>
+</html>
