@@ -15,16 +15,16 @@
 
 ### Key Value Propositions
 
-- ✨ **Real-Time Hotspot Detection**: Identifies partition imbalance in seconds
-- 🤖 **AI/ML Inference**: Predictive risk scoring using CloudWatch metrics
-- 🚀 **Automatic Remediation**: Triggers intelligent resharding without manual intervention
-- 📊 **Premium Dashboard**: Professional command center with ApexCharts visualizations
-- ⚡ **Serverless Architecture**: Completely managed AWS services, pay-per-use model
-- 🔒 **Production-Grade**: Enterprise-level error handling and monitoring
+- **Real-Time Hotspot Detection**: Identifies partition imbalance in seconds
+- **AI/ML Inference**: Predictive risk scoring using CloudWatch metrics
+- **Automatic Remediation**: Triggers intelligent resharding without manual intervention
+- **Premium Dashboard**: Professional command center with ApexCharts visualizations
+- **Serverless Architecture**: Completely managed AWS services, pay-per-use model
+- **Production-Grade**: Enterprise-level error handling and monitoring
 
 ---
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -85,9 +85,9 @@
 
 ---
 
-## ✨ Features
+## Features
 
-### 🎯 Core Capabilities
+### Core Capabilities
 
 | Feature | Description | Benefit |
 |---------|-------------|---------|
@@ -99,7 +99,7 @@
 | **Metrics Visualization** | ApexCharts showing capacity trends (last 10 minutes) | Trend analysis & forecasting |
 | **Hot Keys Detection** | Identifies partition keys with disproportionate traffic | Root cause analysis |
 
-### 🛠️ Technical Stack
+### Technical Stack
 
 ```
 Backend:
@@ -125,7 +125,7 @@ Python Libraries:
 
 ---
 
-## 🚀 Quick Start (5 Minutes)
+## Quick Start (5 Minutes)
 
 ### Prerequisites
 
@@ -197,7 +197,7 @@ http://localhost:8000
 
 ---
 
-## 📖 Detailed Usage Guide
+## Detailed Usage Guide
 
 ### Traffic Generator
 
@@ -270,7 +270,7 @@ python lambda_function.py
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 dynamodb-hotspot/
@@ -278,20 +278,20 @@ dynamodb-hotspot/
 ├── README.md                      ← You are here
 ├── requirements.txt               ← Python dependencies
 │
-├── 📄 Documentation
+├──  Documentation
 │   ├── AWS_SETUP_GUIDE.md         ← AWS configuration steps
 │   ├── README_EXAM_GUIDE.md       ← Exam demo script
 │   ├── QUICK_START.md             ← Cheat sheet
 │   ├── DASHBOARD_SETUP.md         ← Dashboard guide
 │   └── PROJECT_FILES_EXPLAINED.md ← File-by-file breakdown
 │
-├── 🐍 Core Python Modules
+├──  Core Python Modules
 │   ├── setup_aws.py               ← Creates DynamoDB table
 │   ├── traffic_generator.py       ← Simulates hotspot traffic
 │   ├── lambda_function.py         ← ML decision engine
 │   └── dashboard_backend.py       ← FastAPI WebSocket server
 │
-└── 🎨 Frontend
+└──  Frontend
     └── dashboard.html             ← Premium dashboard UI
 ```
 
@@ -307,7 +307,7 @@ dynamodb-hotspot/
 
 ---
 
-## 🔧 Configuration & Customization
+##  Configuration & Customization
 
 ### DynamoDB Table Configuration
 
@@ -349,18 +349,7 @@ RESHARDING_ENABLED = False   # Toggle resharding demo
 if confidence * 1.0 > 0.80:  # Trigger remediation at 80% risk
     execute_resharding()
 ```
-
----
-
-## 🔐 AWS Security Best Practices
-
-This PoC demonstrates best practices:
-
-✅ **IAM Roles**: Dedicated IAM user with specific permissions  
-✅ **Least Privilege**: Lambda uses role-based access (not root credentials)  
-✅ **Encryption**: CloudWatch metrics are encrypted in transit  
-✅ **Audit Logging**: All AWS API calls logged to CloudTrail  
-✅ **No Secrets in Code**: AWS credentials loaded from `~/.aws/credentials`  
+ 
 
 ### For Production Deployments
 
@@ -370,58 +359,6 @@ This PoC demonstrates best practices:
 - Enable **CloudTrail** logging to S3 with encryption
 - Use **IAM Policies** with resource-level restrictions
 
----
-
-## 🐛 Troubleshooting
-
-### Common Issues & Solutions
-
-#### ❌ "AWS credentials not found"
-```bash
-# Solution: Configure AWS CLI
-aws configure
-# Or verify existing credentials
-aws sts get-caller-identity
-```
-
-#### ❌ "Table Exam_UserTraffic does not exist"
-```bash
-# Solution: Create the table
-python setup_aws.py
-# Verify in AWS Console: DynamoDB → Tables → Exam_UserTraffic
-```
-
-#### ❌ "Connection refused at localhost:8000"
-```bash
-# Solution: Ensure dashboard server is running
-python dashboard_backend.py
-# Check if port 8000 is already in use
-netstat -tuln | grep 8000  # Linux/Mac
-netstat -ano | findstr :8000  # Windows
-```
-
-#### ❌ "WebSocket connection failed"
-```bash
-# Solution: Check firewall
-# Windows: Disable Windows Defender Firewall (temporarily for testing)
-# macOS: System Preferences → Security & Privacy → Firewall
-```
-
-#### ❌ "No metrics in dashboard"
-```bash
-# Solution: 
-# 1. Ensure traffic_generator.py is running
-# 2. Wait 1-2 minutes for CloudWatch to aggregate metrics
-# 3. Check CloudWatch Console: Metrics → DynamoDB → Table Metrics
-```
-
-### Enable Debug Logging
-
-Edit `dashboard_backend.py` (line 2):
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)  # Enable debug logs
-```
 
 ### AWS CloudWatch Verification
 
@@ -439,7 +376,7 @@ aws cloudwatch get-metric-statistics \
 
 ---
 
-## 📊 Performance Metrics
+## Performance Metrics
 
 ### Benchmarks
 
@@ -460,7 +397,7 @@ aws cloudwatch get-metric-statistics \
 
 ---
 
-## 🎓 Learning Outcomes
+## Learning Outcomes
 
 By exploring this project, you'll gain expertise in:
 
@@ -485,63 +422,6 @@ By exploring this project, you'll gain expertise in:
 
 ---
 
-## 📝 Detailed Demo Script (10 Minutes)
-
-### Part 1: Setup & Verification (2 Minutes)
-
-**Narrator**: *"Let me demonstrate a complete DynamoDB hotspot detection system..."*
-
-```bash
-# Show AWS CLI is configured
-aws sts get-caller-identity
-
-# Verify DynamoDB table exists
-aws dynamodb describe-table --table-name Exam_UserTraffic | jq '.Table.TableName'
-```
-
-### Part 2: Traffic Generation (3 Minutes)
-
-**Terminal 1**: Start traffic generator
-```bash
-python traffic_generator.py
-```
-
-**Narrator**: *"Here, we're simulating real-world DynamoDB traffic. Nine normal users (user_1 through user_9) send balanced requests. However, one user—user_999—is sending 5x the normal traffic, creating a partition hotspot. The database performance degrades because all requests for user_999 hit the same partition."*
-
-### Part 3: Dashboard Demo (3 Minutes)
-
-**Terminal 2**: Start dashboard
-```bash
-python dashboard_backend.py
-```
-
-**Browser**: Open `http://localhost:8000`
-
-**Narrator**:
-- *"This is our real-time command center. It pulls metrics from AWS CloudWatch every 3 seconds."*
-- Point to the **Risk Score Gauge**: *"Green means safe, yellow means warning, red means critical. Watch it as user_999 traffic increases."*
-- Point to the **Capacity Chart**: *"This shows write capacity over the last 10 minutes. You can see the spike for user_999."*
-- Point to the **Hot Keys Table**: *"This table automatically detects which partition keys are consuming disproportionate capacity."*
-
-### Part 4: ML & Remediation (2 Minutes)
-
-**Show `lambda_function.py`**:
-
-```python
-# Step 1: Query CloudWatch metrics
-response = cloudwatch.get_metric_statistics(...)
-
-# Step 2: Run ML inference
-ml_result = run_ml_prediction(metrics)
-
-# Step 3: If risk > 0.80, trigger resharding
-if ml_result['probability'] > 0.80:
-    execute_resharding()
-```
-
-**Narrator**: *"Our Lambda function runs every minute. It queries CloudWatch, runs a machine learning model to detect anomalies, and if the risk score exceeds 80%, it automatically triggers resharding. This redistributes user_999 traffic across four partitions (user_999#a, #b, #c, #d), eliminating the bottleneck."*
-
----
 
 ## 🚀 Advanced Topics
 
@@ -589,53 +469,6 @@ BillingModeSummary={
 }
 ```
 
----
-
-## 🤝 Contributing
-
-Contributions are welcome! To contribute:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Development Guidelines
-
-- ✓ Follow PEP 8 for Python code
-- ✓ Add docstrings to new functions
-- ✓ Test with real AWS services before committing
-- ✓ Document configuration changes
-- ✓ Update README if adding features
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License** - see the LICENSE file for details.
-
----
-
-## 📞 Support & Contact
-
-For questions, issues, or suggestions:
-
-- **GitHub Issues**: [Create an issue](#)
-- **Email**: [your-email@example.com]
-- **Documentation**: See `/docs` folder for detailed guides
-
----
-
-## 🙏 Acknowledgments
-
-- **AWS Documentation**: CloudWatch, DynamoDB, Lambda architecture patterns
-- **FastAPI Community**: Modern async web framework
-- **ApexCharts**: Professional charting library
-- **boto3**: AWS SDK for Python
-
----
-
 ## 📚 Additional Resources
 
 ### AWS Documentation
@@ -653,51 +486,6 @@ For questions, issues, or suggestions:
 - [AWS Certified Solutions Architect](https://aws.amazon.com/certification/)
 - [AWS Certified Developer](https://aws.amazon.com/certification/)
 - [Serverless Architecture Patterns](https://serverlessland.com/)
-
----
-
-## 🎯 Roadmap
-
-### v1.0 (Current)
-- ✅ Real-time hotspot detection
-- ✅ Premium dashboard
-- ✅ ML risk scoring
-- ✅ Traffic simulation
-
-### v2.0 (Planned)
-- 🔜 Multi-region support
-- 🔜 Advanced ML models (SageMaker integration)
-- 🔜 Custom alerts & notifications (SNS)
-- 🔜 Historical trend analysis
-- 🔜 Cost optimization recommendations
-
-### v3.0 (Future)
-- 🔜 Kubernetes integration
-- 🔜 Mobile app dashboard
-- 🔜 CI/CD automation (GitHub Actions)
-- 🔜 Terraform IaC templates
-
----
-
-## ⭐ Show Your Support
-
-If you find this project valuable, please give it a star! It helps others discover the project.
-
-```
-⭐ Star this repository → [GitHub URL]
-```
-
----
-
-**Last Updated**: April 2024  
-**Version**: 1.0.0  
-**Status**: Production-Ready PoC
-
----
-
-<div align="center">
-
-**Built with ❤️ for AWS Solutions Architects**
 
 [↑ Back to Top](#dynamodb-hotspot-sentinel)
 
